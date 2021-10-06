@@ -1,0 +1,8 @@
+tests/files-to-init-db-with/databases.json
+tests/wait-for-it.sh
+tests/.env*
+.idea/
+.docker/
+*.swp
+*~
+*.pyc
