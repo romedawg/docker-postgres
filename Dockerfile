@@ -23,6 +23,7 @@ ARG DEBIAN_FRONTEND=noninteractive
 COPY docker-entrypoint.sh docker-healthcheck.sh /usr/local/bin/
 COPY postgresql.conf /tmp/postgresql.conf
 COPY pg_hba.conf /tmp/pg_hba.conf
+COPY pg_indent.conf /tmp/pg_indent.conf
 
 # Update Ubuntu Software repository & install postgres
 RUN set -x \
@@ -31,20 +32,25 @@ RUN set -x \
     && wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add - \
     && echo "deb http://apt.postgresql.org/pub/repos/apt/ `lsb_release -cs`-pgdg main" | tee /etc/apt/sources.list.d/pgdg.list \
     && apt-get update \
-    && apt-get -y install postgresql-${POSTGRES_VERSION} postgresql-client-${POSTGRES_VERSION} postgresql-contrib-${POSTGRES_CONTRIB_VERSION}
+    && apt-get -y install postgresql-${POSTGRES_VERSION} postgresql-client-${POSTGRES_VERSION}
 
 # Postgres config files/directories
 RUN set -x \
     && mv /tmp/postgresql.conf ${POSTGRES_CONFIG} \
     && mv /tmp/pg_hba.conf ${POSTGRES_HBA_CONFIG} \
-    && chmod a+x /usr/local/bin/docker-entrypoint.sh /usr/local/bin/docker-healthcheck.sh \
-    && rm -rf /var/lib/apt/lists/* /var/cache/* /tmp/* /var/tmp/* /var/log/* /var/lib/mysql/* \
+    && mv /tmp/pg_indent.conf ${POSTGRES_PG_INDENT_CONFIG} \
     && chown -R postgres:postgres ${POSTGRES_CONFIG_DIR} \
     && mkdir -p ${POSTGRES_DATA_DIR} \
     && chown -R postgres:postgres ${POSTGRES_DATA_DIR} \
     && chmod -R 0700 ${POSTGRES_DATA_DIR} \
     && mkdir ${POSTGRES_LOG_DIR} \
     && chown -R postgres:postgres ${POSTGRES_LOG_DIR}
+
+RUN set -x \
+    && chmod a+x /usr/local/bin/docker-entrypoint.sh /usr/local/bin/docker-healthcheck.sh \
+    # TODO init postgres data dir or remove this line
+#    && rm -rf /var/lib/apt/lists/* /var/cache/* /tmp/* /var/tmp/* /var/log/* /var/lib/postgresql/* \
+    && rm -rf /var/lib/apt/lists/* /var/cache/* /tmp/* /var/tmp/* /var/log/* \
 
 EXPOSE 5432
 
