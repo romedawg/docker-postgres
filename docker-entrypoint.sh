@@ -48,8 +48,6 @@ function initialize_database() {
 setup_environment || exit 1
 initialize_database || exit 1
 
-ls -ltr "${PG_DATA}"
-
 # Working
 eval "exec /usr/lib/postgresql/14/bin/postgres -D ${PG_DATA} -c config_file=/etc/postgresql/postgresql.conf"
 

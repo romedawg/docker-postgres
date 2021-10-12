@@ -1,5 +1,4 @@
 #Download base image ubuntu 20.04
-#FROM nexus.dev.norvax.net:8082/gohealth/ubuntu
 FROM ubuntu:20.04
 
 LABEL maintaier="admin@romedawg.com"
@@ -14,7 +13,7 @@ ARG POSTGRES_DATA_DIR=/var/lib/postgresql
 ARG POSTGRES_CONFIG_DIR=/etc/postgresql
 ARG POSTGRES_CONFIG=${POSTGRES_CONFIG_DIR}/postgresql.conf
 ARG POSTGRES_HBA_CONFIG=${POSTGRES_CONFIG_DIR}/pg_hba.conf
-ARG POSTGRES_PG_INDENT_CONFIG=${POSTGRES_CONFIG_DIR}/pg_indent.conf
+ARG POSTGRES_PG_INDENT_CONFIG=${POSTGRES_CONFIG_DIR}/pg_ident.conf
 ARG POSTGRES_LOG_DIR=/var/log/postgresql
 
 # Disable Prompt During Packages Installation
@@ -35,14 +34,14 @@ RUN set -x \
 COPY docker-entrypoint.sh docker-healthcheck.sh /usr/local/bin/
 COPY postgresql.conf /tmp/postgresql.conf
 COPY pg_hba.conf /tmp/pg_hba.conf
-COPY pg_indent.conf /tmp/pg_indent.conf
+COPY pg_ident.conf /tmp/pg_ident.conf
 
 # Postgres config files/directories
 RUN set -x \
     && chmod a+x /usr/local/bin/docker-entrypoint.sh /usr/local/bin/docker-healthcheck.sh \
     && mv /tmp/postgresql.conf ${POSTGRES_CONFIG} \
     && mv /tmp/pg_hba.conf ${POSTGRES_HBA_CONFIG} \
-    && mv /tmp/pg_indent.conf ${POSTGRES_PG_INDENT_CONFIG} \
+    && mv /tmp/pg_ident.conf ${POSTGRES_PG_INDENT_CONFIG} \
     && chown -R postgres:postgres ${POSTGRES_CONFIG_DIR} \
     && mkdir -p ${POSTGRES_DATA_DIR} \
     && chown -R postgres:postgres ${POSTGRES_DATA_DIR} \
