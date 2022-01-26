@@ -1,0 +1,12 @@
+---
+- name: Restart postgresql
+  systemd:
+    name: postgresql.service
+    state: restarted
+    daemon_reload: yes
+
+- name: Start postgresql
+  systemd:
+    name: postgresql.service
+    state: started
+    daemon_reload: yes

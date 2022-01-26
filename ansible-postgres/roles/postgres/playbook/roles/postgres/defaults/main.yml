@@ -1,0 +1,23 @@
+---
+# defaults file for postgres
+postgres_version: 14
+postgres_contrib_version: 9.6
+postgres_daemon: postgres
+
+# Extra packages to install.
+postgres_packages:
+  # To detect OS version as ansible.
+  - postgresql-14
+#  - posetgresql-14-contrib
+
+postgres_additional_tools:
+  - python3
+  - build-essential
+  - libpq-dev
+  - python3-dev
+
+aws_region: us-east-2
+
+postgres_ssm_base_path: "/postgres"
+postgres_ssm_password: "{{ postgres_ssm_base_path }}/postgres_user_password"
+romedawg_ssm_password: "{{ postgres_ssm_base_path }}/romedawg_service_password"

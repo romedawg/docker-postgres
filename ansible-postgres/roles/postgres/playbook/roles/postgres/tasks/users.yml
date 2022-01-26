@@ -1,0 +1,73 @@
+---
+- name: SSM lookup ssl password for (input/server/web files)
+  no_log: true
+  set_fact:
+    postgres_password: >-
+      {{ lookup('aws_ssm', postgres_ssm_password ) }}
+    romedawg_service_password: >-
+      {{ lookup('aws_ssm', romedawg_ssm_password ) }}
+  delegate_to: "{{ inventory_hostname }}"
+  delegate_facts: false
+
+- name: Create postgres group
+  group:
+    name: postgres
+    state: present
+
+- name: Create postgres user/group
+  user:
+    name: postgres
+    groups: postgres
+
+- name: create a database
+  postgresql_db:
+    name: roman
+    encoding: UTF-8
+    template: template0
+    state: present
+    login_password: "{{ postgres_password }}"
+  become: true
+  become_user: postgres
+
+- name: Connect to romedawg database, create roman user, and grant access to database and all table
+  postgresql_user:
+    db: romedawg
+    name: metra
+    password: "{{ romedawg_service_password }}"
+    priv: "ALL"
+    expires: "Jan 31 2023"
+    login_user: postgres
+    login_password: "{{ postgres_password }}"
+  become: true
+  become_user: postgres
+
+- name: Grant role upseruser
+  postgresql_membership:
+    group: postgres
+    target_roles:
+      - roman
+    state: present
+    login_password: "{{ postgres_password }}"
+  become: true
+  become_user: postgres
+
+#- name: Connect to acme database, create django user, and grant access to database and products table
+#  postgresql_user:
+#    db: test
+#    name: roman
+#    password: password
+#    priv: "CONNECT/products:ALL"
+#    expires: "Jan 31 2023"
+#    login_user: postgres
+#    login_password: "password"
+
+
+
+#- name: Create super user
+#  postgresql_privs:
+#    name: roman
+#    database: test
+#    password: password
+#    roles: ALL
+#    role_attr_flags: SUPERUSER
+#    expires: 'infinity'

@@ -1,0 +1,29 @@
+- name: Installs percona repo with its keyring
+  shell: |
+    echo "deb http://apt.postgresql.org/pub/repos/apt bionic-pgdg main" > /etc/apt/sources.list.d/pgdg.list
+
+- name: Add an Apt signing key for postgres
+  apt_key:
+    url: https://www.postgresql.org/media/keys/ACCC4CF8.asc
+    state: present
+
+- name: Apt update
+  apt:
+    update_cache: yes
+    upgrade: full
+
+- name: Install base packages needed for db servers
+  apt:
+    pkg: "{{ postgres_packages }}"
+
+- name: "Install Python packages"
+  pip: "name={{ item }}  state=present"
+  with_items:
+    - psycopg2-binary
+
+- name: Stop postgresql
+  systemd:
+    name: postgresql.service
+    state: restarted
+    daemon_reload: yes
+  when: "build_env != 'dev'"

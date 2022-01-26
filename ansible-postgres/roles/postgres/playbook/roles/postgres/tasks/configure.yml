@@ -1,0 +1,29 @@
+---
+- name: Create Group postgres config dir
+  file:
+    path: /etc/postgresql/14/main
+    mode: 0755
+    group: postgres
+    owner: postgres
+    state: directory
+
+- name: Create main splunk server config dir
+  copy:
+    src: "{{ item }}"
+    dest: "/etc/postgresql/14/main"
+    owner: postgres
+    group: postgres
+    mode: 0660
+  with_fileglob:
+    - config/*
+  notify: Restart postgresql
+
+- name: Create log directory
+  file:
+    path: /var/log/postgresql
+    mode: 0755
+    group: postgres
+    owner: postgres
+    state: directory
+
+

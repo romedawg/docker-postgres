@@ -1,0 +1,39 @@
+---
+# Prepare env for CloudWatch logging
+- name: Get ec2 metadata facts
+  become: no
+  ec2_metadata_facts:
+  register: metadata_facts
+
+- name: Get ec2 instance facts
+  delegate_to: localhost
+  become: no
+  ec2_instance_info:
+    region: "{{ metadata_facts.ansible_facts.ansible_ec2_placement_region }}"
+    instance_ids: "{{ metadata_facts.ansible_facts.\
+                   ansible_ec2_instance_identity_document_instanceid }}"
+  register: instance_facts
+
+- name: Set instance role for easier addressing
+  delegate_to: localhost
+  become: no
+  set_fact:
+    aws_role: "{{ metadata_facts.ansible_facts.ansible_ec2_iam_instance_profile_role | replace('-', '_') }}"
+    aws_facts: hostvars[inventory_hostname]['metadata_facts']['ansible_facts']
+
+- name: Set instance facts to environment
+  delegate_to: localhost
+  become: no
+  set_fact:
+    aws_instance: "{{ metadata_facts.ansible_facts.\
+                   ansible_ec2_instance_identity_document_instanceid }}"
+    aws_region: "{{ metadata_facts.ansible_facts.\
+                 ansible_ec2_instance_identity_document_region }}"
+    aws_env: "{{ instance_facts.instances[0].tags.environment }}"
+    aws_instances_info: "{{ instance_facts }}"
+    aws_access_key: "{{ hostvars[inventory_hostname]['metadata_facts']['ansible_facts']
+                        ['ansible_ec2_iam_security_credentials_' + aws_role + '_accesskeyid'] }}"
+    aws_secret_key: "{{ hostvars[inventory_hostname]['metadata_facts']['ansible_facts']
+                        ['ansible_ec2_iam_security_credentials_' + aws_role + '_secretaccesskey'] }}"
+    aws_security_token: "{{ hostvars[inventory_hostname]['metadata_facts']['ansible_facts']
+                        ['ansible_ec2_iam_security_credentials_' + aws_role + '_token'] }}"

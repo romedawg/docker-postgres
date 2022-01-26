@@ -1,0 +1,12 @@
+- name: Base infrastructure roles to Postgres hosts
+#  hosts: "tag_application_splunk:&tag_environment_{{ build_env | replace('-', '_') }}:&tag_cluster_{{ cluster }}"
+  hosts: "tag_application_romedawg"
+  user: ubuntu
+  become: yes
+  collections:
+    - gohealth.common
+    - gohealth.newrelic
+  roles:
+    - ubuntu_base
+    - aws_env
+    - postgres

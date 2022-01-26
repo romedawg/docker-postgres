@@ -1,0 +1,111 @@
+---
+
+# to avoid https://github.com/hashicorp/packer/issues/2639.
+# If cloud-init is still running when apt-get starts up, then
+# a race condition can occur causing apt-get to fail.
+- name: Check if cloud-init has finished
+  stat:
+    path: /var/lib/cloud/instance/boot-finished
+  register: cloud_init
+
+- name: Wait for cloud-init to complete
+  command: /usr/bin/cloud-init status --wait
+  when:
+    - not cloud_init.stat.exists
+
+# Updates during AMI build can interrupt the run, disable them.
+- name: Disable apt-daily.timer
+  become: yes
+  systemd:
+    name: apt-daily.timer
+    state: stopped
+    enabled: no
+    daemon_reload: yes
+  register: apt_daily
+
+- name: Disable apt-daily-upgrade.timer
+  become: yes
+  systemd:
+    name: apt-daily-upgrade.timer
+    state: stopped
+    enabled: no
+    daemon_reload: yes
+  register: apt_daily_upgrade
+
+- name: Wait for the updates to finish if they are ongoing
+  become: yes
+  command: systemd-run --property="After=apt-daily.service apt-daily-upgrade.service" --wait /bin/true
+  tags:
+    # Ansible-lint would like us to run this as handler, but this should run *before*
+    # we start installing any packages or touching apt.
+    - skip_ansible_lint
+  when: apt_daily.changed or apt_daily_upgrade.changed
+
+- name: Update ubuntu cache
+  become: yes
+  apt:
+    update_cache: yes
+
+# gettext-base has envsubst, which is why that's being installed.
+- name: Install base packages
+  become: yes
+  package:
+    name: ['ec2-instance-connect', 'ca-certificates', 'jq', 'curl', 'gettext-base']
+
+- name: Install and Configure NTP Daemon
+  collections:
+    - gohealth.common
+  include_role:
+    name: chrony
+
+- name: Install jq
+  become: yes
+  apt:
+    pkg:
+      - jq
+
+- name: install pip3
+  include_role:
+    name: pip
+
+- name: Install awscli
+  become: yes
+  pip:
+    name: ['awscli>=1.18.140', 'boto', 'boto3']
+
+- name: Clean old headers
+  become: yes
+  apt:
+    autoremove: yes
+    purge: yes
+
+- name: Apt autoclean
+  become: yes
+  apt:
+    autoclean: yes
+
+- name: Add cron for apt autoremove
+  become: yes
+  cron:
+    name: autoremove
+    weekday: "*"
+    minute: "0"
+    hour: "3"
+    job: "apt-get -y autoremove"
+
+- name: Add cron for apt clean
+  become: yes
+  cron:
+    name: aptclean
+    weekday: "*"
+    minute: "30"
+    hour: "3"
+    job: "apt-get clean"
+
+- name: Remove vulnerable packages
+  become: yes
+  apt:
+    name:
+      - byobu
+    state: absent
+    purge: yes

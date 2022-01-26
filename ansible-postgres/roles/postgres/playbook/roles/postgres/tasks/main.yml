@@ -1,0 +1,5 @@
+---
+- include: install.yml
+- include: configure.yml
+- include: users.yml
+# TODO create super user(creds stored in SSM)

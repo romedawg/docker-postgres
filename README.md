@@ -21,4 +21,7 @@ PostgresSQL 14.0
  - Generate certificates to use(or default ones may be ok)
  - Deploy to ECS
  - fix logging
-    -  try logging in with a non existing user, docker will show error. postgres no.. actually no logss
+    - try logging in with a non existing user, docker will show error. postgres no.. actually no logss
+
+# ansible Playbook
+

@@ -46,6 +46,7 @@ function setupUsers() {
     # create grants for these users for database x
     /usr/lib/postgresql/14/bin/createuser --superuser "${ADMIN_USER}"
     /usr/lib/postgresql/14/bin/createdb "${POSTGRES_DATABASE}"
+    /usr/lib/postgresql/14/bin/createdb "${ADMIN_USER}"
 
     cat <<< "ALTER USER ${ADMIN_USER} PASSWORD '${ADMIN_PASSWORD}'" > "${temp_sql}"
     psql -a -q -f "${temp_sql}"
@@ -71,7 +72,7 @@ POSTGRES_DATABASE=${POSTGRES_DATABASE:-nil}
 ADMIN_USER=${ADMIN_USER:-nil}
 ADMIN_PASSWORD=${ADMIN_PASSWORD:-nil}
 POSTGRES_HEALTHCHECK_USER=${POSTGRES_HEALTHCHECK_USER:-healthcheck}
-POSTGRES_HEALTHCHECK_PASSWD=${MYSQL_HEALTHCHECK_PASSWD:-nil}
+POSTGRES_HEALTHCHECK_PASSWORD=${POSTGRES_HEALTHCHECK_PASSWORD:-nil}
 
 setup_environment || exit 1
 initialize_database || exit 1
