@@ -55,6 +55,6 @@ EXPOSE 5432
 
 USER postgres
 
-#HEALTHCHECK CMD ["/usr/local/bin/docker-healthcheck.sh"]
+HEALTHCHECK CMD ["/usr/local/bin/docker-healthcheck.sh"]
 
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]

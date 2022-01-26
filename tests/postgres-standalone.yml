@@ -1,0 +1,25 @@
+---
+version: '2.2'
+networks:
+  postgres_test:
+    driver: bridge
+services:
+  postgres:
+    image: romedawg/postgres-14:latest
+    hostname: postgres
+    container_name: postgres
+    domainname: romedawg.com
+    user: postgres
+    networks:
+      postgres_test:
+        aliases:
+          - postgres
+          - postgres.romedawg.com
+    ports:
+      - '5432:5432'
+    environment:
+      ADMIN_USER: admin
+      ADMIN_PASSWORD: password
+      POSTGRES_DATABASE: admin
+
+
